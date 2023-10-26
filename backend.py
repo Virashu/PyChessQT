@@ -1,61 +1,69 @@
 """Шахматы"""
 
 
+from enum import Enum
+
+
+class Color(Enum):
+    WHITE = 1
+    BLACK = 2
+
+
 class Board:
     """Main chess board"""
 
     def __init__(self):
         self.check = None
         self.mate = None
-        self.color = WHITE
+        self.color = Color.WHITE
         self.field = []
         for _ in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
-            Rook(WHITE),
-            Knight(WHITE),
-            Bishop(WHITE),
-            Queen(WHITE),
-            King(WHITE),
-            Bishop(WHITE),
-            Knight(WHITE),
-            Rook(WHITE),
+            Rook(Color.WHITE),
+            Knight(Color.WHITE),
+            Bishop(Color.WHITE),
+            Queen(Color.WHITE),
+            King(Color.WHITE),
+            Bishop(Color.WHITE),
+            Knight(Color.WHITE),
+            Rook(Color.WHITE),
         ]
         self.field[1] = [
-            Pawn(WHITE),
-            Pawn(WHITE),
-            Pawn(WHITE),
-            Pawn(WHITE),
-            Pawn(WHITE),
-            Pawn(WHITE),
-            Pawn(WHITE),
-            Pawn(WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
         ]
         self.field[6] = [
-            Pawn(BLACK),
-            Pawn(BLACK),
-            Pawn(BLACK),
-            Pawn(BLACK),
-            Pawn(BLACK),
-            Pawn(BLACK),
-            Pawn(BLACK),
-            Pawn(BLACK),
+            Pawn(Color.BLACK),
+            Pawn(Color.BLACK),
+            Pawn(Color.BLACK),
+            Pawn(Color.BLACK),
+            Pawn(Color.BLACK),
+            Pawn(Color.BLACK),
+            Pawn(Color.BLACK),
+            Pawn(Color.BLACK),
         ]
         self.field[7] = [
-            Rook(BLACK),
-            Knight(BLACK),
-            Bishop(BLACK),
-            Queen(BLACK),
-            King(BLACK),
-            Bishop(BLACK),
-            Knight(BLACK),
-            Rook(BLACK),
+            Rook(Color.BLACK),
+            Knight(Color.BLACK),
+            Bishop(Color.BLACK),
+            Queen(Color.BLACK),
+            King(Color.BLACK),
+            Bishop(Color.BLACK),
+            Knight(Color.BLACK),
+            Rook(Color.BLACK),
         ]
-        # self.field[0] = [None, None, None, Pawn(WHITE), King(WHITE), Pawn(WHITE), None, None]
-        # self.field[1] = [None, None, None, Pawn(WHITE), Pawn(WHITE), Pawn(WHITE), None, None]
-        # self.field[7] = [None, None, None, Queen(WHITE), King(BLACK), Queen(BLACK), None, None]
+        # self.field[0] = [None, None, None, Pawn(Color.WHITE), King(Color.WHITE), Pawn(Color.WHITE), None, None]
+        # self.field[1] = [None, None, None, Pawn(Color.WHITE), Pawn(Color.WHITE), Pawn(Color.WHITE), None, None]
+        # self.field[7] = [None, None, None, Queen(Color.WHITE), King(Color.BLACK), Queen(Color.BLACK), None, None]
 
-    def current_player_color(self) -> int:
+    def current_player_color(self) -> Color:
         """Возвращает ходящую в данный момент сторону"""
         return self.color
 
@@ -67,7 +75,7 @@ class Board:
         if piece is None:
             return "  "
         color = piece.get_color()
-        color_char = "w" if color == WHITE else "b"
+        color_char = "w" if color == Color.WHITE else "b"
         return color_char + piece.char()
 
     def move_piece(self, row: int, col: int, row1: int, col1: int) -> bool:
@@ -98,7 +106,7 @@ class Board:
         self.check_check()
         return True
 
-    def is_under_attack(self, row: int, col: int, color: int) -> bool:
+    def is_under_attack(self, row: int, col: int, color: Color) -> bool:
         """Метод, проверяющий бито ли поле.
         `row`: Ряд
         `col`: Колонка
@@ -119,8 +127,8 @@ class Board:
         color = piece.get_color()
         return (
             isinstance(piece, Pawn)
-            and (color == WHITE and move[0] == 7)
-            or (color == BLACK and move[0] == 0)
+            and (color == Color.WHITE and move[0] == 7)
+            or (color == Color.BLACK and move[0] == 0)
         )
 
     def get_piece(self, row: int, col: int) -> "Piece":
@@ -141,8 +149,8 @@ class Board:
             self, row, col, row1, col1
         ):
             return False
-        if not (piece.get_color() == WHITE and row1 == 7) and not (
-            piece.get_color() == BLACK and row1 == 0
+        if not (piece.get_color() == Color.WHITE and row1 == 7) and not (
+            piece.get_color() == Color.BLACK and row1 == 0
         ):
             return False
 
@@ -179,9 +187,9 @@ class Board:
                         self.check = kpiece.get_color()
                         self.mate_check(i, j)
 
-    def get_check(self) -> int:
+    def get_check(self) -> Color | None:
         """Возаращает состояние шаха"""
-        return self.check or 0
+        return self.check
 
     def mate_check(self, row: int, col: int) -> bool:
         """Проверяет, есть ли мат на доске"""
@@ -232,7 +240,7 @@ class Board:
         """Проверка на возможность рокировки Короля"""
         if col1 not in (0, 7):
             return False
-        row_ = 0 if self.color == WHITE else 7
+        row_ = 0 if self.color == Color.WHITE else 7
         if row != row1 != row_:
             return False
         # king = self.field[row][4]
@@ -264,10 +272,10 @@ class Board:
 class Piece:
     """Абстрактная фигура"""
 
-    def __init__(self, color: int) -> None:
+    def __init__(self, color) -> None:
         self.color = color
 
-    def get_color(self) -> int:
+    def get_color(self) -> Color:
         """Возвращает цвет фигуры"""
         return self.color
 
@@ -354,7 +362,7 @@ class Pawn(Piece):
         if board.get_piece(row1, col1) is not None:
             return False
 
-        if self.color == WHITE:
+        if self.color == Color.WHITE:
             direction = 1
             start_row = 1
         else:
@@ -377,7 +385,7 @@ class Pawn(Piece):
     ) -> bool:
         if not super().can_attack(board, row, col, row1, col1):
             return False
-        direction = 1 if (self.color == WHITE) else -1
+        direction = 1 if (self.color == Color.WHITE) else -1
         return row + direction == row1 and (col + 1 == col1 or col - 1 == col1)
 
 
@@ -519,11 +527,11 @@ class King(Piece):
         return self.can_move(board, row, col, row1, col1)
 
 
-def opponent(color: int):
+def opponent(color: Color):
     """Возвращает цвет противника"""
-    if color == WHITE:
-        return BLACK
-    return WHITE
+    if color == Color.WHITE:
+        return Color.BLACK
+    return Color.WHITE
 
 
 def correct_coords(row, col):
@@ -559,7 +567,7 @@ def main():
         print("    move <row> <col> <row1> <col1>     -- ход из клетки (row, col)")
         print("                                          в клетку (row1, col1)")
 
-        if board.current_player_color() == WHITE:
+        if board.current_player_color() == Color.WHITE:
             print("Ход белых:")
         else:
             print("Ход черных:")
@@ -575,9 +583,4 @@ def main():
 
 
 if __name__ == "__main__":
-    WHITE = 1
-    BLACK = 2
     main()
-
-WHITE = 1
-BLACK = 2

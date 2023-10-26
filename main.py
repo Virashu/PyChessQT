@@ -1,10 +1,39 @@
-from typing import Any, Literal
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog
 from PyQt6.QtGui import QPixmap, QIcon, QColorConstants
 
 import sys
 
-from backend import Board, WHITE, BLACK, Pawn, King
+from backend import Board, Color
+
+
+class PawnPromotionDialog(QDialog):
+    def __init__(self, c, i, *a) -> None:
+        self.color = c
+        self.icons = i
+        super().__init__(*a)
+        self.initUI()
+
+    def initUI(self):
+        self.setFixedSize(210, 75)
+        color_char = "w" if self.color == Color.WHITE else "b"
+
+        # Player can select Queen, Rook, Bishop or Knight
+        piece_chars = ("Q", "R", "B", "N")
+        for i, x in enumerate(piece_chars):
+            btn = QPushButton(self)
+            btn.setGeometry(i * 45 + 15, 15, 45, 45)
+            btn.setIcon(QIcon(self.icons[f"{color_char}{x}".lower()]))
+            btn.setIconSize(QPixmap(45, 45).size())
+            btn.clicked.connect(self.onclick)
+            btn.setObjectName(x)
+
+    def onclick(self):
+        sender = self.sender()
+        if not sender:
+            return
+        # TODO: somehow return this thing
+        self.res = sender.objectName()
+        self.accept()
 
 
 class ChessWindow(QMainWindow):
@@ -56,8 +85,9 @@ class ChessWindow(QMainWindow):
             color = piece.get_color()
             if self.board.is_promoting_move(piece, coords):
                 char = self.select_char(color)
+                print(char)
                 (yf, xf), (y, x) = self.select, coords
-                self.board.move_and_promote_pawn(yf, xf, y, x, char)
+                print(self.board.move_and_promote_pawn(yf, xf, y, x, char))
             else:
                 self.board.move_piece(*self.select, *coords)
             self.select = None
@@ -93,17 +123,13 @@ class ChessWindow(QMainWindow):
                 self.buttons[y][x].setIcon(QIcon(icon))
                 self.buttons[y][x].update()
 
-    def select_char(self, color: Literal[WHITE, BLACK]) -> str:
+    def select_char(self, color: Color) -> str:
         """Creates dialog with selection for Pawn promotion
         :param color: Color of promoted Pawn
         """
-        # Player can select Queen, Rook, Bishop or Knight
-        color_char = "w" if color == WHITE else "b"
-        piece_chars = ("Q", "R", "B", "N")
-        dialog = QDialog(self)
-        # TODO
-
-        return ""
+        dialog = PawnPromotionDialog(color, self.icons, self)
+        dialog.exec()
+        return dialog.res
 
 
 if __name__ == "__main__":
