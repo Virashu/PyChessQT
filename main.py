@@ -104,7 +104,7 @@ class ChessWindow(QMainWindow):
         for y in range(8):
             for x in range(8):
                 type = (y + x) % 2
-                bg = ("#663300", "#ebdbb2")[type]
+                bg = ("#b16040", "#ebdbb2")[type]
                 if self.select:
                     yf, xf = self.select
                     if self.select == (y, x):
