@@ -1,7 +1,8 @@
-"""Шахматы"""
+"""Chess"""
 
 
 from enum import Enum
+from itertools import product
 
 
 class Color(Enum):
@@ -13,13 +14,15 @@ class Board:
     """Main chess board"""
 
     def __init__(self):
-        self.check = None
-        self.mate = None
+        self.check: Color | None = None
+        self.mate: Color | None = None
         self.color = Color.WHITE
-        self.field = []
+        self.field: list[list[Piece | None]] = []
+
         for _ in range(8):
             self.field.append([None] * 8)
-        self.field[0] = [
+
+        self.field[7] = [
             Rook(Color.WHITE),
             Knight(Color.WHITE),
             Bishop(Color.WHITE),
@@ -29,17 +32,17 @@ class Board:
             Knight(Color.WHITE),
             Rook(Color.WHITE),
         ]
-        self.field[1] = [
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-        ]
         self.field[6] = [
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+            Pawn(Color.WHITE),
+        ]
+        self.field[1] = [
             Pawn(Color.BLACK),
             Pawn(Color.BLACK),
             Pawn(Color.BLACK),
@@ -49,7 +52,7 @@ class Board:
             Pawn(Color.BLACK),
             Pawn(Color.BLACK),
         ]
-        self.field[7] = [
+        self.field[0] = [
             Rook(Color.BLACK),
             Knight(Color.BLACK),
             Bishop(Color.BLACK),
@@ -59,18 +62,17 @@ class Board:
             Knight(Color.BLACK),
             Rook(Color.BLACK),
         ]
+
         # self.field[0] = [None, None, None, Pawn(Color.WHITE), King(Color.WHITE), Pawn(Color.WHITE), None, None]
         # self.field[1] = [None, None, None, Pawn(Color.WHITE), Pawn(Color.WHITE), Pawn(Color.WHITE), None, None]
         # self.field[7] = [None, None, None, Queen(Color.WHITE), King(Color.BLACK), Queen(Color.BLACK), None, None]
 
     def current_player_color(self) -> Color:
-        """Возвращает ходящую в данный момент сторону"""
+        """Returns active color"""
         return self.color
 
     def cell(self, row: int, col: int) -> str:
-        """Возвращает строку из двух символов. Если в клетке (row, col)
-        находится фигура, символы цвета и фигуры. Если клетка пуста,
-        то два пробела."""
+        """Returns string of two symbols, color and piece type, if cell (row, col) is not empty, else two spaces"""
         piece = self.field[row][col]
         if piece is None:
             return "  "
@@ -79,38 +81,38 @@ class Board:
         return color_char + piece.char()
 
     def move_piece(self, row: int, col: int, row1: int, col1: int) -> bool:
-        """Переместить фигуру из точки (row, col) в точку (row1, col1).
-        Если перемещение возможно, метод выполнит его и вернет True.
-        Если нет --- вернет False"""
+        """Move piece from point (row, col) to point (row1, col1).
+        Returns whether move succeeded or not"""
 
         if not correct_coords(row, col) or not correct_coords(row1, col1):
             return False
         if row == row1 and col == col1:
-            return False  # нельзя пойти в ту же клетку
+            return False
         piece = self.field[row][col]
         if piece is None:
             return False
         if piece.get_color() != self.color:
             return False
-        if self.field[row1][col1] is None:
+        dest = self.field[row1][col1]
+        if dest is None:
             if not piece.can_move(self, row, col, row1, col1):
                 return False
-        elif self.field[row1][col1].get_color() == opponent(piece.get_color()):
+        elif dest.get_color() == opponent(piece.get_color()):
             if not piece.can_attack(self, row, col, row1, col1):
                 return False
         else:
             return False
-        self.field[row][col] = None  # Снять фигуру.
-        self.field[row1][col1] = piece  # Поставить на новое место.
+        self.field[row][col] = None
+        self.field[row1][col1] = piece
         self.color = opponent(self.color)
         self.check_check()
         return True
 
     def is_under_attack(self, row: int, col: int, color: Color) -> bool:
-        """Метод, проверяющий бито ли поле.
-        `row`: Ряд
-        `col`: Колонка
-        `color`: Атакующая сторона
+        """Check if cell is under attack.
+        `row`: Row
+        `col`: Column
+        `color`: Attacking side's color
         """
         for i in range(8):
             for j in range(8):
@@ -131,14 +133,14 @@ class Board:
             or (color == Color.BLACK and move[0] == 0)
         )
 
-    def get_piece(self, row: int, col: int) -> "Piece":
-        """Возвращает фигуру по координатам row, col"""
+    def get_piece(self, row: int, col: int) -> "Piece | None":
+        """Returns piece in cell (row, col)"""
         return self.field[row][col]
 
     def move_and_promote_pawn(
         self, row: int, col: int, row1: int, col1: int, char: str
     ) -> bool:
-        """Двигает пешку и выполняет превращение"""
+        """Moves and promotes Pawn"""
         piece = self.get_piece(row, col)
 
         if piece is None:
@@ -175,41 +177,38 @@ class Board:
         return True
 
     def check_check(self) -> None:
-        """Проверяет наличие шаха на доске"""
+        """Check if king is under attack"""
         self.check = None
         for i in range(8):
             for j in range(8):
-                kpiece = self.field[i][j]
-                if kpiece is None:
+                king_piece = self.field[i][j]
+                if king_piece is None:
                     continue
-                if isinstance(kpiece, King):
-                    if self.is_under_attack(i, j, opponent(kpiece.get_color())):
-                        self.check = kpiece.get_color()
-                        self.mate_check(i, j)
+                if isinstance(king_piece, King):
+                    if self.is_under_attack(i, j, opponent(king_piece.get_color())):
+                        self.check = king_piece.get_color()
+                        self.mate_check(i, j, king_piece)
 
     def get_check(self) -> Color | None:
-        """Возаращает состояние шаха"""
+        """Returns current check state"""
         return self.check
 
-    def mate_check(self, row: int, col: int) -> bool:
-        """Проверяет, есть ли мат на доске"""
-        king = self.field[row][col]
+    def mate_check(self, row: int, col: int, king_piece: "King") -> None:
+        """Check for mate on board"""
 
-        for i in range(-1, 1):
-            for j in range(-1, 1):
-                if king.can_move(self, row, col, row + i, col + j) or king.can_attack(
-                    self, row, col, row + i, col + j
-                ):
-                    return False
-        self.mate = king.get_color()
-        return True
+        for i, j in product(range(-1, 1), range(-1, 1)):
+            if king_piece.can_move(
+                self, row, col, row + i, col + j
+            ) or king_piece.can_attack(self, row, col, row + i, col + j):
+                self.mate = None
+        self.mate = king_piece.get_color()
 
-    def get_mate(self):
-        """Возвращает состояние мата"""
+    def get_mate(self) -> Color | None:
+        """Returns current mate state"""
         return self.mate
 
     def can_move(self, row, col, row1, col1) -> bool:
-        """Проверка на возможность хода"""
+        """Check for move possibility"""
         piece = self.field[row][col]
         if piece is None:
             return False
@@ -222,7 +221,7 @@ class Board:
         return piece.can_move(self, row, col, row1, col1)
 
     def can_attack(self, row, col, row1, col1) -> bool:
-        """Проверка на возможность взятия"""
+        """Check for attack possibility"""
         piece = self.field[row][col]
         if piece is None:
             return False
@@ -237,7 +236,7 @@ class Board:
         return piece.can_attack(self, row, col, row1, col1)
 
     def can_castle(self, row: int, col: int, row1: int, col1: int) -> bool:
-        """Проверка на возможность рокировки Короля"""
+        """Check for castlig possibility"""
         if col1 not in (0, 7):
             return False
         row_ = 0 if self.color == Color.WHITE else 7
@@ -270,21 +269,21 @@ class Board:
 
 
 class Piece:
-    """Абстрактная фигура"""
+    """Abstract Piece"""
 
     def __init__(self, color) -> None:
         self.color = color
 
     def get_color(self) -> Color:
-        """Возвращает цвет фигуры"""
+        """Returns piece color"""
         return self.color
 
     def char(self) -> str:
-        """Возвращает кодовое имя фигуры"""
+        """Returns piece representation"""
         ...
 
     def can_move(self, board: Board, row: int, col: int, row1: int, col1: int) -> bool:
-        """Проверка на возможность хода"""
+        """Check for abstract move possibility"""
         if not correct_coords(row1, col1):
             return False
         if row == row1 and col == col1:
@@ -298,7 +297,7 @@ class Piece:
     def can_attack(
         self, board: Board, row: int, col: int, row1: int, col1: int
     ) -> bool:
-        """Проверка на возможность взятия"""
+        """Check for abstract attack possibility"""
         if not correct_coords(row1, col1):
             return False
         if row == row1 and col == col1:
@@ -311,7 +310,7 @@ class Piece:
 
 
 class Rook(Piece):
-    """Rook - ладья"""
+    """Rook"""
 
     def get_color(self) -> int:
         return self.color
@@ -345,7 +344,7 @@ class Rook(Piece):
 
 
 class Pawn(Piece):
-    """Pawn - пешка"""
+    """Pawn"""
 
     def get_color(self) -> int:
         return self.color
@@ -390,7 +389,7 @@ class Pawn(Piece):
 
 
 class Knight(Piece):
-    """Knight - конь"""
+    """Knight"""
 
     def char(self) -> str:
         return "N"
@@ -398,10 +397,10 @@ class Knight(Piece):
     def can_move(self, board: Board, row: int, col: int, row1: int, col1: int) -> bool:
         if not super().can_move(board, row, col, row1, col1):
             return False
-        posr = abs(row - row1)
-        posc = abs(col - col1)
+        delta_row = abs(row - row1)
+        delta_col = abs(col - col1)
 
-        if sorted([posr, posc]) == [1, 2]:
+        if sorted([delta_row, delta_col]) == [1, 2]:
             return True
         return False
 
@@ -414,7 +413,7 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
-    """Bishop - слон"""
+    """Bishop"""
 
     def char(self) -> str:
         return "B"
@@ -422,16 +421,16 @@ class Bishop(Piece):
     def can_move(self, board: Board, row: int, col: int, row1: int, col1: int) -> bool:
         if not super().can_move(board, row, col, row1, col1):
             return False
-        posr = row - row1
-        posc = col - col1
+        delta_row = row - row1
+        delta_col = col - col1
 
-        if abs(posr) != abs(posc):
+        if abs(delta_row) != abs(delta_col):
             return False
 
         step_x = 1 if col < col1 else -1
         step_y = 1 if row < row1 else -1
 
-        for i in range(1, abs(posr)):
+        for i in range(1, abs(delta_row)):
             _row = i * step_y + row
             _col = i * step_x + col
             if not correct_coords(_row, _col):
@@ -451,7 +450,7 @@ class Bishop(Piece):
 
 
 class Queen(Piece):
-    """Queen - ферзь"""
+    """Queen"""
 
     def char(self) -> str:
         return "Q"
@@ -474,14 +473,14 @@ class Queen(Piece):
                     return False
             return True
 
-        posr = row - row1
-        posc = col - col1
+        delta_row = row - row1
+        delta_col = col - col1
 
-        if abs(posr) == abs(posc):
+        if abs(delta_row) == abs(delta_col):
             step_x = 1 if col < col1 else -1
             step_y = 1 if row < row1 else -1
 
-            for i in range(1, abs(posr)):
+            for i in range(1, abs(delta_row)):
                 _row = i * step_y + row
                 _col = i * step_x + col
                 if not correct_coords(_row, _col):
@@ -501,7 +500,7 @@ class Queen(Piece):
 
 
 class King(Piece):
-    """King - король"""
+    """King"""
 
     def char(self) -> str:
         return "K"
@@ -528,20 +527,19 @@ class King(Piece):
 
 
 def opponent(color: Color):
-    """Возвращает цвет противника"""
+    """Returns opposite color"""
     if color == Color.WHITE:
         return Color.BLACK
     return Color.WHITE
 
 
 def correct_coords(row, col):
-    """Функция проверяет, что координаты (row, col) лежат
-    внутри доски"""
+    """Check if coords is inside board bounds"""
     return 0 <= row < 8 and 0 <= col < 8
 
 
 def print_board(board):
-    """Вывод доски в консоль"""
+    """Output board to console"""
     print("     +----+----+----+----+----+----+----+----+")
     for row in range(7, -1, -1):
         print(" ", row, end="  ")
@@ -562,24 +560,23 @@ def main():
     while True:
         print_board(board)
 
-        print("Команды:")
-        print("    exit                               -- выход")
-        print("    move <row> <col> <row1> <col1>     -- ход из клетки (row, col)")
-        print("                                          в клетку (row1, col1)")
+        print(
+            f"Commands:\n\texit\t\t\t\t-- exit\n\tmove <row> <col> <row1> <col1>\t\t\t\t-- move from (row, col) to (row1, col1)"
+        )
 
         if board.current_player_color() == Color.WHITE:
-            print("Ход белых:")
+            print("Turn of white:")
         else:
-            print("Ход черных:")
+            print("Turn of black:")
         command = input()
         if command == "exit":
             break
         _, row, col, row1, col1 = command.split()
         row, col, row1, col1 = int(row), int(col), int(row1), int(col1)
         if board.move_piece(row, col, row1, col1):
-            print("Ход успешен")
+            print("Turn succeeded")
         else:
-            print("Координаты некорректы! Попробуйте другой ход!")
+            print("Wrong coords! Try again!")
 
 
 if __name__ == "__main__":
