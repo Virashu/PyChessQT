@@ -83,7 +83,7 @@ class ChessWindow(QMainWindow):
         else:
             piece = self.board.get_piece(*self.select)
             color = piece.get_color()
-            if self.board.is_promoting_move(piece, coords):
+            if self.board.is_promoting_move(*self.select, *coords):
                 char = self.select_char(color)
                 print(char)
                 (yf, xf), (y, x) = self.select, coords
@@ -110,7 +110,7 @@ class ChessWindow(QMainWindow):
                     if self.select == (y, x):
                         bg = "#00cc00"
                     elif self.board.can_castle(yf, xf, y, x):
-                        bg = "#00cccc"
+                        bg = "#ffcc00"
                     elif self.board.can_attack(yf, xf, y, x):
                         bg = ["#aa0000", "#ff0000"][type]
                     elif self.board.can_move(yf, xf, y, x):

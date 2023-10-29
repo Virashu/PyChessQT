@@ -10,7 +10,7 @@
 - [x] Translate comments
 - [ ] Documentation
 - [x] Fix arrangement of pieces
-- [ ] Implement [castling](https://en.wikipedia.org/wiki/Castling)
+- [x] Implement [castling](https://en.wikipedia.org/wiki/Castling)
 - [ ] Implement [en passant](https://en.wikipedia.org/wiki/En_passant)
 
 ## Ideas
