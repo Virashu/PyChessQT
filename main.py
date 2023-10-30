@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog, QMessageBox
 from PyQt6.QtGui import QPixmap, QIcon, QColorConstants
 
 import sys
@@ -31,7 +31,6 @@ class PawnPromotionDialog(QDialog):
         sender = self.sender()
         if not sender:
             return
-        # TODO: somehow return this thing
         self.res = sender.objectName()
         self.accept()
 
@@ -85,9 +84,8 @@ class ChessWindow(QMainWindow):
             color = piece.get_color()
             if self.board.is_promoting_move(*self.select, *coords):
                 char = self.select_char(color)
-                print(char)
                 (yf, xf), (y, x) = self.select, coords
-                print(self.board.move_and_promote_pawn(yf, xf, y, x, char))
+                self.board.move_and_promote_pawn(yf, xf, y, x, char)
             else:
                 self.board.move_piece(*self.select, *coords)
             self.select = None
@@ -95,9 +93,6 @@ class ChessWindow(QMainWindow):
 
     def update(self) -> None:
         """Redraw the board"""
-        if self.board.get_mate():
-            # TODO: show results window
-            ...
         # TODO: show who should move on some label
         # board.current_player_color()
 
@@ -122,6 +117,17 @@ class ChessWindow(QMainWindow):
                 )
                 self.buttons[y][x].setIcon(QIcon(icon))
                 self.buttons[y][x].update()
+
+        if color := self.board.get_mate():
+            friendly_color = "White" if color == Color.WHITE else "Black"
+            color_char = "w" if color == Color.WHITE else "b"
+
+            msg = QMessageBox(self)
+            msg.setIconPixmap(self.icons[f"{color_char}q"])
+            msg.setText(f"{friendly_color} wins!")
+            msg.setWindowTitle("Results")
+            msg.exec()
+            self.close()
 
     def select_char(self, color: Color) -> str:
         """Creates dialog with selection for Pawn promotion

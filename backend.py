@@ -19,8 +19,8 @@ class Board:
         self.color = Color.WHITE
         self.field: list[list[Piece | None]] = []
 
-        for _ in range(8):
-            self.field.append([None] * 8)
+        # Fill the field with blank cells 8x8
+        self.field.extend([[None] * 8 for _ in range(8)])
 
         self.field[0] = [
             Rook(Color.BLACK),
@@ -32,26 +32,34 @@ class Board:
             Knight(Color.BLACK),
             Rook(Color.BLACK),
         ]
-        self.field[1] = [
-            Pawn(Color.BLACK),
-            Pawn(Color.BLACK),
-            Pawn(Color.BLACK),
-            Pawn(Color.BLACK),
-            Pawn(Color.BLACK),
-            Pawn(Color.BLACK),
-            Pawn(Color.BLACK),
-            Pawn(Color.BLACK),
-        ]
-        self.field[6] = [
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-            Pawn(Color.WHITE),
-        ]
+
+        #  PyLance says that `Pawn` is not `Piece` 😑
+        self.field[1].clear()
+        self.field[1].extend(
+            [
+                Pawn(Color.BLACK),
+                Pawn(Color.BLACK),
+                Pawn(Color.BLACK),
+                Pawn(Color.BLACK),
+                Pawn(Color.BLACK),
+                Pawn(Color.BLACK),
+                Pawn(Color.BLACK),
+                Pawn(Color.BLACK),
+            ]
+        )
+        self.field[6].clear()
+        self.field[6].extend(
+            [
+                Pawn(Color.WHITE),
+                Pawn(Color.WHITE),
+                Pawn(Color.WHITE),
+                Pawn(Color.WHITE),
+                Pawn(Color.WHITE),
+                Pawn(Color.WHITE),
+                Pawn(Color.WHITE),
+                Pawn(Color.WHITE),
+            ]
+        )
         self.field[7] = [
             Rook(Color.WHITE),
             Knight(Color.WHITE),
@@ -62,10 +70,6 @@ class Board:
             Knight(Color.WHITE),
             Rook(Color.WHITE),
         ]
-
-        # self.field[0] = [None, None, None, Pawn(Color.WHITE), King(Color.WHITE), Pawn(Color.WHITE), None, None]
-        # self.field[1] = [None, None, None, Pawn(Color.WHITE), Pawn(Color.WHITE), Pawn(Color.WHITE), None, None]
-        # self.field[7] = [None, None, None, Queen(Color.WHITE), King(Color.BLACK), Queen(Color.BLACK), None, None]
 
     def current_player_color(self) -> Color:
         """Returns active color"""
@@ -98,6 +102,8 @@ class Board:
             if not piece.can_move(self, row, col, row1, col1):
                 if isinstance(piece, King):
                     if self.can_castle(row, col, row1, col1):
+                        piece.set_moved()
+                        self.color = opponent(self.color)
                         return self.castle(row, col, row1, col1)
                 return False
         elif dest.get_color() == opponent(piece.get_color()):
@@ -194,7 +200,7 @@ class Board:
                     continue
                 if isinstance(king_piece, King):
                     if self.is_under_attack(i, j, opponent(king_piece.get_color())):
-                        self.check = king_piece.get_color()
+                        self.check = opponent(king_piece.get_color())
                         self.mate_check(i, j, king_piece)
 
     def get_check(self) -> Color | None:
@@ -207,9 +213,10 @@ class Board:
         for i, j in product(range(-1, 1), range(-1, 1)):
             if king_piece.can_move(
                 self, row, col, row + i, col + j
-            ) or king_piece.can_attack(self, row, col, row + i, col + j):
+            ):  # or king_piece.can_attack(self, row, col, row + i, col + j):
                 self.mate = None
-        self.mate = king_piece.get_color()
+                return
+        self.mate = opponent(king_piece.get_color())
 
     def get_mate(self) -> Color | None:
         """Returns current mate state"""
@@ -240,6 +247,8 @@ class Board:
         if self.color != color:
             return False
         if att_piece.get_color() == color:
+            return False
+        if isinstance(att_piece, King):
             return False
         return piece.can_attack(self, row, col, row1, col1)
 
@@ -303,6 +312,9 @@ class Board:
             self.field[row][rook_col],
             None,
         )
+
+        self.field[row][rook_col_dest].set_moved()
+        self.field[row][col1].set_moved()
 
         return True
 
