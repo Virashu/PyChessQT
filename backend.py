@@ -71,9 +71,38 @@ class Board:
             Rook(Color.WHITE),
         ]
 
+    def field_as_text(self) -> str:
+        return ";".join(
+            [",".join(map(lambda a: str(a) if a else "_", row)) for row in self.field]
+        )
+
+    def field_from_text(self, text: str) -> None:
+        rows = text.split(";")
+        for y, row in enumerate(rows):
+            pieces = row.split(",")
+            for x, piece_code in enumerate(pieces):
+                if piece_code == "_":
+                    self.field[y][x] = None
+                else:
+                    # `w`, `Q` = `wQ`
+                    color_char, piece_char = piece_code
+                    color = {"w": Color.WHITE, "b": Color.BLACK}[color_char]
+                    piece_class = {
+                        "P": Pawn,
+                        "K": King,
+                        "Q": Queen,
+                        "B": Bishop,
+                        "N": Knight,
+                        "R": Rook,
+                    }[piece_char]
+                    self.field[y][x] = piece_class(color)
+
     def current_player_color(self) -> Color:
         """Returns active color"""
         return self.color
+
+    def set_active_color(self, color: Color) -> None:
+        self.color = color
 
     def cell(self, row: int, col: int) -> str:
         """Returns string of two symbols, color and piece type, if cell (row, col) is not empty, else two spaces"""
@@ -124,15 +153,16 @@ class Board:
         `col`: Column
         `color`: Attacking side's color
         """
-        for i in range(8):
-            for j in range(8):
-                piece = self.field[i][j]
-                if piece is None:
-                    continue
-                if piece.get_color() != color:
-                    continue
-                if piece.can_attack(self, i, j, row, col):
-                    return True
+        for i, j in product(range(8), range(8)):
+            piece = self.field[i][j]
+            if piece is None:
+                continue
+            if piece.get_color() != color:
+                continue
+            # if piece.can_attack(self, i, j, row, col):
+            #     return True
+            if piece.can_attack(self, i, j, row, col, team_check=False):
+                return True
         return False
 
     def is_promoting_move(self, row, col, row1, col1) -> bool:
@@ -256,11 +286,9 @@ class Board:
         """Check for castlig possibility"""
         if col1 == 2:
             rook_col = 0
-            rook_col_dest = 3
             empty = (1, 2, 3)
         elif col1 == 6:
             rook_col = 7
-            rook_col_dest = 5
             empty = (5, 6)
         else:
             return False
@@ -334,6 +362,10 @@ class Piece:
         """Returns piece representation"""
         ...
 
+    def __str__(self) -> str:
+        col = "w" if self.color == Color.WHITE else "b"
+        return col + self.char()
+
     def can_move(self, board: Board, row: int, col: int, row1: int, col1: int) -> bool:
         """Check for abstract move possibility"""
         if not correct_coords(row1, col1):
@@ -347,7 +379,7 @@ class Piece:
         return True
 
     def can_attack(
-        self, board: Board, row: int, col: int, row1: int, col1: int
+        self, board: Board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
         """Check for abstract attack possibility"""
         if not correct_coords(row1, col1):
@@ -356,7 +388,7 @@ class Piece:
             return False
         piece = board.get_piece(row1, col1)
         if piece is not None:
-            if piece.get_color() == self.color:
+            if piece.get_color() == self.color and team_check:
                 return False
         return True
 
@@ -394,7 +426,7 @@ class Rook(Piece):
         return True
 
     def can_attack(
-        self, board: Board, row: int, col: int, row1: int, col1: int
+        self, board: Board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
         if not super().can_attack(board, row, col, row1, col1):
             return False
@@ -438,7 +470,7 @@ class Pawn(Piece):
         return False
 
     def can_attack(
-        self, board: Board, row: int, col: int, row1: int, col1: int
+        self, board: Board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
         if not super().can_attack(board, row, col, row1, col1):
             return False
@@ -463,7 +495,7 @@ class Knight(Piece):
         return False
 
     def can_attack(
-        self, board: Board, row: int, col: int, row1: int, col1: int
+        self, board: Board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
         if not super().can_attack(board, row, col, row1, col1):
             return False
@@ -500,7 +532,7 @@ class Bishop(Piece):
         return True
 
     def can_attack(
-        self, board: Board, row: int, col: int, row1: int, col1: int
+        self, board: Board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
         if not super().can_attack(board, row, col, row1, col1):
             return False
@@ -550,7 +582,7 @@ class Queen(Piece):
         return False
 
     def can_attack(
-        self, board: Board, row: int, col: int, row1: int, col1: int
+        self, board: Board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
         if not super().can_attack(board, row, col, row1, col1):
             return False
@@ -577,7 +609,7 @@ class King(Piece):
         return True
 
     def can_attack(
-        self, board: Board, row: int, col: int, row1: int, col1: int
+        self, board: Board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
         if not super().can_attack(board, row, col, row1, col1):
             return False

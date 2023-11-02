@@ -4,6 +4,7 @@ from PyQt6.QtGui import QPixmap, QIcon, QColorConstants
 import sys
 
 from backend import Board, Color
+from database import Database
 
 
 class PawnPromotionDialog(QDialog):
@@ -38,12 +39,25 @@ class PawnPromotionDialog(QDialog):
 class ChessWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.load_images()
+
+        self.db = Database()
         self.board = Board()
+        if session := self.db.get_session():
+            field, color = session
+            turn = {"w": Color.WHITE, "b": Color.BLACK}[color]
+            self.board.set_active_color(turn)
+            self.board.field_from_text(field)
+
         self.buttons: list[list[QPushButton]] = []
-        self.initUI()
         self.select = None
-        self.update()
+
+        self.load_images()
+        self.initUI()
+        self.draw()
+
+    def closeEvent(self, e) -> None:
+        self.db.close()
+        super().closeEvent(e)
 
     def initUI(self) -> None:
         self.setWindowTitle("Chess")
@@ -81,17 +95,37 @@ class ChessWindow(QMainWindow):
             self.select = coords
         else:
             piece = self.board.get_piece(*self.select)
+            if not piece:
+                return
             color = piece.get_color()
             if self.board.is_promoting_move(*self.select, *coords):
                 char = self.select_char(color)
                 (yf, xf), (y, x) = self.select, coords
-                self.board.move_and_promote_pawn(yf, xf, y, x, char)
+                res = self.board.move_and_promote_pawn(yf, xf, y, x, char)
             else:
-                self.board.move_piece(*self.select, *coords)
-            self.select = None
-        self.update()
+                res = self.board.move_piece(*self.select, *coords)
 
-    def update(self) -> None:
+            if res:
+                self.update_session()
+            self.select = None
+        self.draw()
+
+        if color := self.board.get_mate():
+            friendly_color = "White" if color == Color.WHITE else "Black"
+            color_char = "w" if color == Color.WHITE else "b"
+
+            msg = QMessageBox(self)
+            msg.setIconPixmap(self.icons[f"{color_char}q"])
+            msg.setText(f"{friendly_color} wins!")
+            msg.setWindowTitle("Results")
+            msg.exec()
+
+            self.db.write_leaderboard(color_char)
+            self.db.clear_session()
+
+            self.close()
+
+    def draw(self) -> None:
         """Redraw the board"""
         # TODO: show who should move on some label
         # board.current_player_color()
@@ -118,16 +152,11 @@ class ChessWindow(QMainWindow):
                 self.buttons[y][x].setIcon(QIcon(icon))
                 self.buttons[y][x].update()
 
-        if color := self.board.get_mate():
-            friendly_color = "White" if color == Color.WHITE else "Black"
-            color_char = "w" if color == Color.WHITE else "b"
-
-            msg = QMessageBox(self)
-            msg.setIconPixmap(self.icons[f"{color_char}q"])
-            msg.setText(f"{friendly_color} wins!")
-            msg.setWindowTitle("Results")
-            msg.exec()
-            self.close()
+    def update_session(self) -> None:
+        field = self.board.field_as_text()
+        color = self.board.current_player_color()
+        turn = {Color.WHITE: "w", Color.BLACK: "b"}[color]
+        self.db.add_move(field, turn)
 
     def select_char(self, color: Color) -> str:
         """Creates dialog with selection for Pawn promotion
