@@ -61,7 +61,8 @@ class ChessWindow(QMainWindow):
 
     def initUI(self) -> None:
         self.setWindowTitle("Chess")
-        self.setGeometry(100, 100, 390, 390)
+        self.setFixedSize(390, 390)
+        self.setWindowIcon(QIcon(self.icons["bk"]))
 
         for y in range(8):
             self.buttons.append([])
@@ -163,6 +164,7 @@ class ChessWindow(QMainWindow):
         :param color: Color of promoted Pawn
         """
         dialog = PawnPromotionDialog(color, self.icons, self)
+        dialog.setWindowTitle("Promotion")
         dialog.exec()
         return dialog.res
 
