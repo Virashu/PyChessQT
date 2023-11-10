@@ -11,6 +11,9 @@ class Color(Enum):
     def __repr__(self) -> str:
         return "w" if self == Color.WHITE else "b"
 
+    def __str__(self) -> str:
+        return "White" if self == Color.WHITE else "Black"
+
 
 def correct_coords(row, col):
     """Check if coords is inside board bounds"""

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QPushButton, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QPushButton, QMessageBox, QLabel
 from PyQt6.QtGui import QPixmap, QIcon, QColorConstants
 
 
@@ -23,6 +23,8 @@ class ChessWindow(QMainWindow):
             self.board.field_from_text(field)
 
         self.buttons: list[list[QPushButton]] = []
+        self.label = QLabel(self)
+        self.label.setGeometry(15, 380, 390, 20)
         self.select = None
 
         self.load_images()
@@ -35,7 +37,7 @@ class ChessWindow(QMainWindow):
 
     def initUI(self) -> None:
         self.setWindowTitle("Chess")
-        self.setFixedSize(390, 390)
+        self.setFixedSize(390, 410)
         self.setWindowIcon(QIcon(self.icons["bk"]))
 
         for y in range(8):
@@ -86,8 +88,8 @@ class ChessWindow(QMainWindow):
         self.draw()
 
         if color := self.board.get_mate():
-            friendly_color = "White" if color == Color.WHITE else "Black"
-            color_char = "w" if color == Color.WHITE else "b"
+            friendly_color = str(color)
+            color_char = repr(color)
 
             msg = QMessageBox(self)
             msg.setIconPixmap(self.icons[f"{color_char}q"])
@@ -103,7 +105,8 @@ class ChessWindow(QMainWindow):
     def draw(self) -> None:
         """Redraw the board"""
         # TODO: show who should move on some label
-        # board.current_player_color()
+        turn = str(self.board.current_player_color())
+        self.label.setText(f"Turn of {turn}")
 
         for y in range(8):
             for x in range(8):
@@ -130,7 +133,7 @@ class ChessWindow(QMainWindow):
     def update_session(self) -> None:
         field = self.board.field_as_text()
         color = self.board.current_player_color()
-        turn = {Color.WHITE: "w", Color.BLACK: "b"}[color]
+        turn = repr(color)
         self.db.add_move(field, turn)
 
     def select_char(self, color: Color) -> str:
