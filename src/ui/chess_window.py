@@ -1,39 +1,13 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QPushButton, QMessageBox
 from PyQt6.QtGui import QPixmap, QIcon, QColorConstants
 
-import sys
 
-from backend import Board, Color
+# Dependency injection?
+from chess.board import Board, Color
 from database import Database
 
 
-class PawnPromotionDialog(QDialog):
-    def __init__(self, c, i, *a) -> None:
-        self.color = c
-        self.icons = i
-        super().__init__(*a)
-        self.initUI()
-
-    def initUI(self):
-        self.setFixedSize(210, 75)
-        color_char = "w" if self.color == Color.WHITE else "b"
-
-        # Player can select Queen, Rook, Bishop or Knight
-        piece_chars = ("Q", "R", "B", "N")
-        for i, x in enumerate(piece_chars):
-            btn = QPushButton(self)
-            btn.setGeometry(i * 45 + 15, 15, 45, 45)
-            btn.setIcon(QIcon(self.icons[f"{color_char}{x}".lower()]))
-            btn.setIconSize(QPixmap(45, 45).size())
-            btn.clicked.connect(self.onclick)
-            btn.setObjectName(x)
-
-    def onclick(self):
-        sender = self.sender()
-        if not sender:
-            return
-        self.res = sender.objectName()
-        self.accept()
+from ui import PawnPromotionDialog
 
 
 class ChessWindow(QMainWindow):
@@ -167,10 +141,3 @@ class ChessWindow(QMainWindow):
         dialog.setWindowTitle("Promotion")
         dialog.exec()
         return dialog.res
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    ex = ChessWindow()
-    ex.show()
-    sys.exit(app.exec())
