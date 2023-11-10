@@ -1,6 +1,7 @@
 __name__ = "Chess board module"
 __all__ = ["Board"]
 
+from copy import deepcopy
 from itertools import product
 from .utils import *
 from .pieces import *
@@ -134,8 +135,14 @@ class Board:
         elif dest.get_color() == piece.get_color().opponent():
             if not piece.can_attack(self, row, col, row1, col1):
                 return False
+            if isinstance(dest, King):
+                return False
         else:
             return False
+        if self.get_check():
+            if not self.protecting_move(row, col, row1, col1):
+                return False
+
         piece.set_moved()
         self.field[row][col] = None
         self.field[row1][col1] = piece
@@ -157,6 +164,11 @@ class Board:
                 continue
             # if piece.can_attack(self, i, j, row, col):
             #     return True
+            if isinstance(piece, King):
+                if piece.can_attack(
+                    self, i, j, row, col, team_check=False, check_check=False
+                ):
+                    return True
             if piece.can_attack(self, i, j, row, col, team_check=False):
                 return True
         return False
@@ -258,10 +270,23 @@ class Board:
         color = piece.get_color()
         if self.color != color:
             return False
+        if self.get_check():
+            if not self.protecting_move(row, col, row1, col1):
+                return False
         if isinstance(piece, King):
             if self.can_castle(row, col, row1, col1):
                 return True
         return piece.can_move(self, row, col, row1, col1)
+
+    def protecting_move(self, row, col, row1, col1) -> bool:
+        tmp_board = deepcopy(self)
+        tmp_board.field[row1][col1] = tmp_board.field[row][col]
+        tmp_board.field[row][col] = None
+        tmp_board.color = self.color.opponent()
+        tmp_board.check_check()
+        if tmp_board.get_check():
+            return False
+        return True
 
     def can_attack(self, row, col, row1, col1) -> bool:
         """Check for attack possibility"""
@@ -274,6 +299,9 @@ class Board:
         color = piece.get_color()
         if self.color != color:
             return False
+        if self.get_check():
+            if not self.protecting_move(row, col, row1, col1):
+                return False
         if att_piece.get_color() == color:
             return False
         if isinstance(att_piece, King):
@@ -289,6 +317,9 @@ class Board:
             rook_col = 7
             empty = (5, 6)
         else:
+            return False
+
+        if self.get_check():
             return False
 
         if row != row1:

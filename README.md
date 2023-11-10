@@ -16,8 +16,8 @@
 - [ ] Implement [en passant](https://en.wikipedia.org/wiki/En_passant)
 - [x] Implement mate
 - [x] Promote Pawn on attack
-- [ ] Fix infinite recursion when two kings stand nearby
-- [ ] Enhance movement when check is not None
+- [x] Fix infinite recursion when two kings stand nearby
+- [x] Enhance movement when check is not None
 - [x] DB
   - [x] Session
     - [x] Field to text
