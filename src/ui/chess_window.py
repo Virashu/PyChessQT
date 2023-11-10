@@ -9,6 +9,8 @@ from database import Database
 
 from ui import PawnPromotionDialog
 
+DIRNAME = __file__.replace("\\", "/").rsplit("/", 1)[0]
+
 
 class ChessWindow(QMainWindow):
     def __init__(self):
@@ -57,7 +59,7 @@ class ChessWindow(QMainWindow):
         self.icons = {}
 
         for char in chars:
-            self.icons[char] = QPixmap(f"icons/{char.lower()}.png")
+            self.icons[char] = QPixmap(f"{DIRNAME}/icons/{char.lower()}.png")
         self.icons["  "] = QPixmap(45, 45)
         self.icons["  "].fill(QColorConstants.Transparent)
 
