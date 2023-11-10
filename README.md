@@ -15,15 +15,15 @@
 - [x] Implement [castling](https://en.wikipedia.org/wiki/Castling)
 - [ ] Implement [en passant](https://en.wikipedia.org/wiki/En_passant)
 - [x] Implement mate
-- [ ] Promote Pawn on attack
+- [x] Promote Pawn on attack
 - [ ] Fix infinite recursion when two kings stand nearby
 - [ ] Enhance movement when check is not None
-- [ ] DB
-  - [ ] Session
+- [x] DB
+  - [x] Session
     - [x] Field to text
-    - [ ] Text to field
-    - [ ] Database class
-  - [ ] Leader board
+    - [x] Text to field
+    - [x] Database class
+  - [x] Leader board
 
 ## Ideas
 

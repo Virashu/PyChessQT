@@ -1,5 +1,14 @@
 """Pieces module"""
 
+__all__ = [
+    "Piece",
+    "King",
+    "Pawn",
+    "Bishop",
+    "Rook",
+    "Queen",
+    "Knight",
+]
 
 from .piece import Piece
 from .king import King

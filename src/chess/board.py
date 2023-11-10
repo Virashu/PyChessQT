@@ -165,7 +165,9 @@ class Board:
         piece = self.field[row][col]
         if not isinstance(piece, Pawn):
             return False
-        if not self.can_move(row, col, row1, col1):
+        if not self.can_move(row, col, row1, col1) and not self.can_attack(
+            row, col, row1, col1
+        ):
             return False
         color = piece.get_color()
         return (color == Color.WHITE and row1 == 0) or (
