@@ -8,6 +8,7 @@
 
 ## TODO
 
+- [ ] Restart button
 - [x] Implement promotion
 - [x] Translate comments
 - [ ] Documentation
@@ -23,6 +24,7 @@
     - [x] Field to text
     - [x] Text to field
     - [x] Database class
+    - [ ] Next/prev buttons
   - [x] Leader board
 
 ## Ideas
