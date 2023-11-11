@@ -15,7 +15,7 @@
   - [x] Draw
 - [x] Implement promotion
 - [x] Translate comments
-- [ ] Documentation
+- [x] Documentation
 - [x] Fix arrangement of pieces
 - [x] Implement [castling](https://en.wikipedia.org/wiki/Castling)
 - [ ] Implement [en passant](https://en.wikipedia.org/wiki/En_passant)
