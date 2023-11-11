@@ -8,6 +8,7 @@
 
 ## TODO
 
+- [ ] Fix king attacking into check
 - [ ] Restart button
 - [x] Implement promotion
 - [x] Translate comments
