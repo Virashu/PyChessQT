@@ -8,8 +8,11 @@
 
 ## TODO
 
-- [ ] Fix king attacking into check
-- [ ] Restart button
+- [x] Fix king attacking into check
+- [x] Restart button
+  - [x] Drop table session
+  - [x] Load start field
+  - [x] Draw
 - [x] Implement promotion
 - [x] Translate comments
 - [ ] Documentation

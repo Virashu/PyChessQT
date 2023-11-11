@@ -7,6 +7,20 @@ from .utils import *
 from .pieces import *
 
 
+START_FIELD = """
+bR,bN,bB,bQ,bK,bB,bN,bR;
+bP,bP,bP,bP,bP,bP,bP,bP;
+_,_,_,_,_,_,_,_;
+_,_,_,_,_,_,_,_;
+_,_,_,_,_,_,_,_;
+_,_,_,_,_,_,_,_;
+wP,wP,wP,wP,wP,wP,wP,wP;
+wR,wN,wB,wQ,wK,wB,wN,wR
+""".replace(
+    "\n", ""
+)
+
+
 class Board:
     """Main chess board class"""
 
@@ -19,54 +33,7 @@ class Board:
         # Fill the field with blank cells 8x8
         self.field.extend([[None] * 8 for _ in range(8)])
 
-        self.field[0] = [
-            Rook(Color.BLACK),
-            Knight(Color.BLACK),
-            Bishop(Color.BLACK),
-            Queen(Color.BLACK),
-            King(Color.BLACK),
-            Bishop(Color.BLACK),
-            Knight(Color.BLACK),
-            Rook(Color.BLACK),
-        ]
-
-        #  PyLance says that `Pawn` is not `Piece` 😑
-        self.field[1].clear()
-        self.field[1].extend(
-            [
-                Pawn(Color.BLACK),
-                Pawn(Color.BLACK),
-                Pawn(Color.BLACK),
-                Pawn(Color.BLACK),
-                Pawn(Color.BLACK),
-                Pawn(Color.BLACK),
-                Pawn(Color.BLACK),
-                Pawn(Color.BLACK),
-            ]
-        )
-        self.field[6].clear()
-        self.field[6].extend(
-            [
-                Pawn(Color.WHITE),
-                Pawn(Color.WHITE),
-                Pawn(Color.WHITE),
-                Pawn(Color.WHITE),
-                Pawn(Color.WHITE),
-                Pawn(Color.WHITE),
-                Pawn(Color.WHITE),
-                Pawn(Color.WHITE),
-            ]
-        )
-        self.field[7] = [
-            Rook(Color.WHITE),
-            Knight(Color.WHITE),
-            Bishop(Color.WHITE),
-            Queen(Color.WHITE),
-            King(Color.WHITE),
-            Bishop(Color.WHITE),
-            Knight(Color.WHITE),
-            Rook(Color.WHITE),
-        ]
+        self.field_from_text(START_FIELD)
 
     def field_as_text(self) -> str:
         return ";".join(
@@ -83,7 +50,7 @@ class Board:
                 else:
                     # `w`, `Q` = `wQ`
                     color_char, piece_char = piece_code
-                    color = {"w": Color.WHITE, "b": Color.BLACK}[color_char]
+                    color = Color.from_char(color_char)
                     piece_class = {
                         "P": Pawn,
                         "K": King,

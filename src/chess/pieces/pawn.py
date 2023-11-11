@@ -41,7 +41,7 @@ class Pawn(Piece):
     def can_attack(
         self, board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
-        if not super().can_attack(board, row, col, row1, col1):
+        if not super().can_attack(board, row, col, row1, col1, team_check):
             return False
         direction = -1 if (self.color == Color.WHITE) else 1
         return row + direction == row1 and (col + 1 == col1 or col - 1 == col1)

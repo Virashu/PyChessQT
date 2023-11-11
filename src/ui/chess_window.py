@@ -26,8 +26,12 @@ class ChessWindow(QMainWindow):
 
         self.buttons: list[list[QPushButton]] = []
         self.label = QLabel(self)
-        self.label.setGeometry(15, 380, 390, 20)
+        self.label.setGeometry(15, 380, 90, 20)
         self.select = None
+
+        self.restart_btn = QPushButton("Restart", self)
+        self.restart_btn.setGeometry(150, 380, 90, 20)
+        self.restart_btn.clicked.connect(self.restart)
 
         self.load_images()
         self.initUI()
@@ -106,7 +110,7 @@ class ChessWindow(QMainWindow):
 
     def draw(self) -> None:
         """Redraw the board"""
-        # TODO: show who should move on some label
+
         turn = str(self.board.current_player_color())
         self.label.setText(f"Turn of {turn}")
 
@@ -146,3 +150,9 @@ class ChessWindow(QMainWindow):
         dialog.setWindowTitle("Promotion")
         dialog.exec()
         return dialog.res
+
+    def restart(self) -> None:
+        self.board = Board()
+        self.db.clear_session()
+        self.db.create_session()
+        self.draw()

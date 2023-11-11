@@ -39,11 +39,14 @@ class Database:
             ).fetchone()
             return session
 
+        self.create_session()
+
+        return None
+
+    def create_session(self) -> None:
         self.cur.execute(
             "CREATE TABLE session(Id INTEGER PRIMARY KEY AUTOINCREMENT, Field TEXT, Turn TEXT);"
         )
-
-        return None
 
     def add_move(
         self,

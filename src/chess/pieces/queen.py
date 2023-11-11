@@ -47,6 +47,6 @@ class Queen(Piece):
     def can_attack(
         self, board, row: int, col: int, row1: int, col1: int, team_check=True
     ) -> bool:
-        if not super().can_attack(board, row, col, row1, col1):
+        if not super().can_attack(board, row, col, row1, col1, team_check):
             return False
         return self.can_move(board, row, col, row1, col1)

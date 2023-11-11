@@ -34,6 +34,6 @@ class King(Piece):
         team_check=True,
         check_check=True,
     ) -> bool:
-        if not super().can_attack(board, row, col, row1, col1):
+        if not super().can_attack(board, row, col, row1, col1, team_check):
             return False
         return self.can_move(board, row, col, row1, col1, check_check=check_check)

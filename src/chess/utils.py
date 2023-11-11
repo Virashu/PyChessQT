@@ -14,6 +14,10 @@ class Color(Enum):
     def __str__(self) -> str:
         return "White" if self == Color.WHITE else "Black"
 
+    @staticmethod
+    def from_char(char: str) -> "Color":
+        return {"w": Color.WHITE, "b": Color.BLACK}[char]
+
 
 def correct_coords(row, col):
     """Check if coords is inside board bounds"""
